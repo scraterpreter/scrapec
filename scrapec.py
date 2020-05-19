@@ -10,6 +10,7 @@ parser = argparse.ArgumentParser(description='Compile .sb3 files for Scrape to c
 parser.add_argument('file_name', help='Name of the .sb3 file.')
 parser.add_argument('--sprite', help='Name of the sprite containing code to be executed.', default="Sprite1")
 parser.add_argument('--json', help='Use this flag when the input file is a project.json file, not a .sb3 file.', action="store_true")
+parser.add_argument('--indent', help='Character used to indent the json outputted.')
 
 args = parser.parse_args()
 
@@ -43,6 +44,26 @@ for variable in stage["variables"]:
 for array in stage["lists"]:
     output["container"]["lists"][array] = stage["lists"][array][1]
 
+output["blocks"] = dict()
+start = ""
+event_whenflagclicked_count = 0
+for block in sprite["blocks"]:
+    if sprite["blocks"][block]["opcode"] == "event_whenflagclicked":
+        start = block
+        event_whenflagclicked_count += 1
+    output["blocks"][block] = dict()
+    output["blocks"][block]["opcode"] = sprite["blocks"][block]["opcode"]
+    output["blocks"][block]["next"] = sprite["blocks"][block]["next"]
+    output["blocks"][block]["parent"] = sprite["blocks"][block]["parent"]
+    output["blocks"][block]["inputs"] = sprite["blocks"][block]["inputs"]
+    output["blocks"][block]["fields"] = sprite["blocks"][block]["fields"]
+
+if event_whenflagclicked_count != 1:
+    print("Your project must have one event_whenflagclicked block.")
+    sys.exit(1)
+
+output["start"] = start
+
 output_file_name = os.path.splitext(os.path.basename(args.file_name))[0] + ".scrape"
 with open(output_file_name, "w") as scrapefile:
-    json.dump(output, scrapefile)
+    json.dump(output, scrapefile, indent=args.indent)
