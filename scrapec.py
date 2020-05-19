@@ -39,17 +39,31 @@ with open("opcodes.json", "r") as opcodesfile:
 
 opcodes = opcodejson["opcodes"]
 
+ids = set()
+ids.update(set(stage["variables"].keys()))
+ids.update(set(stage["lists"].keys()))
+ids.update(set(sprite["blocks"].keys()))
+ids.difference_update({i for i in sprite["blocks"] if sprite["blocks"][i]["opcode"] == "event_whenflagclicked"})
+ids = list(ids)
+ids.sort()
+
 def parseInput(input_data):
     if input_data[0] == 1:
         return [2, input_data[1][1]]
     else:
-        return [1, input_data[1]]
+        return [1, parseId(input_data[1])]
 
 def parseField(field_data):
     if field_data[1] == None:
         return [2, field_data[0]]
     else:
-        return [1, field_data[1]]
+        return [1, parseId(field_data[1])]
+
+def parseId(id_string):
+    if id_string in ids:
+        return str(ids.index(id_string))
+    else:
+        return None
 
 output = dict()
 
@@ -58,9 +72,9 @@ output["container"] = dict()
 output["container"]["variables"] = dict()
 output["container"]["lists"] = dict()
 for variable in stage["variables"]:
-    output["container"]["variables"][variable] = stage["variables"][variable][1]
+    output["container"]["variables"][parseId(variable)] = stage["variables"][variable][1]
 for array in stage["lists"]:
-    output["container"]["lists"][array] = stage["lists"][array][1]
+    output["container"]["lists"][parseId(array)] = stage["lists"][array][1]
 
 output["blocks"] = dict()
 start = ""
@@ -73,18 +87,21 @@ for block in sprite["blocks"]:
         print("{0} is not a supported block yet.".format(sprite["blocks"][block]["opcode"]))
         sys.exit(1)
     else:
-        output["blocks"][block] = dict()
-        output["blocks"][block]["opcode"] = sprite["blocks"][block]["opcode"]
-        output["blocks"][block]["next"] = sprite["blocks"][block]["next"]
-        output["blocks"][block]["parent"] = sprite["blocks"][block]["parent"]
-        output["blocks"][block]["inputs"] = {i: parseInput(sprite["blocks"][block]["inputs"][i]) for i in sprite["blocks"][block]["inputs"]}
-        output["blocks"][block]["fields"] = {i: parseField(sprite["blocks"][block]["fields"][i]) for i in sprite["blocks"][block]["fields"]}
+        block_id = parseId(block)
+        output["blocks"][block_id] = dict()
+        output["blocks"][block_id]["opcode"] = sprite["blocks"][block]["opcode"]
+        output["blocks"][block_id]["next"] = parseId(sprite["blocks"][block]["next"])
+        output["blocks"][block_id]["parent"] = parseId(sprite["blocks"][block]["parent"])
+        output["blocks"][block_id]["inputs"] = {i: parseInput(sprite["blocks"][block]["inputs"][i]) for i in sprite["blocks"][block]["inputs"]}
+        output["blocks"][block_id]["fields"] = {i: parseField(sprite["blocks"][block]["fields"][i]) for i in sprite["blocks"][block]["fields"]}
 
 if event_whenflagclicked_count != 1:
     print("Your project must have one event_whenflagclicked block.")
     sys.exit(1)
 
-output["start"] = start
+output["start"] = parseId(start)
+
+output["ids"] = len(ids)
 
 if args.output == None:
     output_file_name = os.path.splitext(os.path.basename(args.file_name))[0] + ".scrape"
