@@ -33,6 +33,23 @@ for target in project["targets"]:
     elif target["name"] == args.sprite:
         sprite = target
 
+with open("opcodes.json", "r") as opcodesfile:
+    opcodejson = json.load(opcodesfile)
+
+opcodes = opcodejson["opcodes"]
+
+def parseInput(input_data):
+    if input_data[0] == 1:
+        return [2, input_data[1][1]]
+    else:
+        return [1, input_data[1]]
+
+def parseField(field_data):
+    if field_data[1] == None:
+        return [2, field_data[0]]
+    else:
+        return [1, field_data[1]]
+
 output = dict()
 
 output["container"] = dict()
@@ -49,14 +66,18 @@ start = ""
 event_whenflagclicked_count = 0
 for block in sprite["blocks"]:
     if sprite["blocks"][block]["opcode"] == "event_whenflagclicked":
-        start = block
+        start = sprite["blocks"][block]["next"]
         event_whenflagclicked_count += 1
-    output["blocks"][block] = dict()
-    output["blocks"][block]["opcode"] = sprite["blocks"][block]["opcode"]
-    output["blocks"][block]["next"] = sprite["blocks"][block]["next"]
-    output["blocks"][block]["parent"] = sprite["blocks"][block]["parent"]
-    output["blocks"][block]["inputs"] = sprite["blocks"][block]["inputs"]
-    output["blocks"][block]["fields"] = sprite["blocks"][block]["fields"]
+    elif sprite["blocks"][block]["opcode"] not in opcodes:
+        print("{0} is not a supported block yet.".format(sprite["blocks"][block]["opcode"]))
+        sys.exit(1)
+    else:
+        output["blocks"][block] = dict()
+        output["blocks"][block]["opcode"] = sprite["blocks"][block]["opcode"]
+        output["blocks"][block]["next"] = sprite["blocks"][block]["next"]
+        output["blocks"][block]["parent"] = sprite["blocks"][block]["parent"]
+        output["blocks"][block]["inputs"] = {i: parseInput(sprite["blocks"][block]["inputs"][i]) for i in sprite["blocks"][block]["inputs"]}
+        output["blocks"][block]["fields"] = {i: parseField(sprite["blocks"][block]["fields"][i]) for i in sprite["blocks"][block]["fields"]}
 
 if event_whenflagclicked_count != 1:
     print("Your project must have one event_whenflagclicked block.")
