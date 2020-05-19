@@ -11,6 +11,7 @@ parser.add_argument('file_name', help='Name of the .sb3 file.')
 parser.add_argument('--sprite', help='Name of the sprite containing code to be executed.', default="Sprite1")
 parser.add_argument('--json', help='Use this flag when the input file is a project.json file, not a .sb3 file.', action="store_true")
 parser.add_argument('--indent', help='Character used to indent the json outputted.')
+parser.add_argument('-o', '--output', help='Name for the file being outputted.')
 
 args = parser.parse_args()
 
@@ -85,6 +86,9 @@ if event_whenflagclicked_count != 1:
 
 output["start"] = start
 
-output_file_name = os.path.splitext(os.path.basename(args.file_name))[0] + ".scrape"
+if args.output == None:
+    output_file_name = os.path.splitext(os.path.basename(args.file_name))[0] + ".scrape"
+else:
+    output_file_name = args.output
 with open(output_file_name, "w") as scrapefile:
     json.dump(output, scrapefile, indent=args.indent)
