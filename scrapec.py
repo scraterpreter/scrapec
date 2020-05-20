@@ -103,6 +103,45 @@ output["start"] = parseId(start)
 
 output["ids"] = len(ids)
 
+def available_nodes(graph, visited):
+    available = set()
+    for i in graph:
+        if graph[i].issubset(visited) and i not in visited:
+            available.add(i)
+    return available
+
+def bfs(graph, visited_order=list()):
+    visited_set = set(visited_order)
+    while True:
+        queue = list(available_nodes(graph, visited_set))
+        if len(queue) == 0:
+            break
+        queue.sort()
+        node = queue[0]
+        visited_order.append(node)
+        visited_set.add(node)
+    return visited_order
+
+graph = dict()
+for block in output["blocks"]:
+    graph[int(block)] = set()
+    for parameter in output["blocks"][block]["inputs"]:
+        if output["blocks"][block]["inputs"][parameter][0] == 1:
+            graph[int(block)].add(int(output["blocks"][block]["inputs"][parameter][1]))
+    for field in output["blocks"][block]["fields"]:
+        if output["blocks"][block]["fields"][field][0] == 1:
+            graph[int(block)].add(int(output["blocks"][block]["fields"][field][1]))
+
+container_ids = [int(i) for i in list(output["container"]["variables"].keys()) + list(output["container"]["lists"].keys())]
+container_ids.sort()
+
+result = bfs(graph, container_ids)
+if len(result) < len(graph):
+    print("There is something wrong with the provided project file.")
+    sys.exit(1)
+else:
+    output["build_order"] = result
+
 if args.output == None:
     output_file_name = os.path.splitext(os.path.basename(args.file_name))[0] + ".scrape"
 else:
