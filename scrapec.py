@@ -5,6 +5,7 @@ import zipfile
 import json
 import sys
 import os
+import copy
 
 parser = argparse.ArgumentParser(description='Compile .sb3 files for Scrape to consume.')
 parser.add_argument('file_name', help='Name of the .sb3 file.')
@@ -38,17 +39,21 @@ with open("opcodes.json", "r") as opcodesfile:
     opcodejson = json.load(opcodesfile)
 
 opcodes = opcodejson["opcodes"]
+inputs_requirements = opcodejson["inputs_requirements"]
 
 ids = set()
 ids.update(set(stage["variables"].keys()))
 ids.update(set(stage["lists"].keys()))
 ids.update(set(sprite["blocks"].keys()))
-ids.difference_update({i for i in sprite["blocks"] if sprite["blocks"][i]["opcode"] == "event_whenflagclicked"})
+ids.difference_update({i for i in sprite["blocks"] if type(sprite["blocks"][i]) == type(dict()) and sprite["blocks"][i]["opcode"] == "event_whenflagclicked"})
 ids = list(ids)
 ids.sort()
 
 def parseInput(input_data):
     if input_data[0] == 1:
+        if input_data[1] == None:
+            print("A block contains a null reference in one of its inputs.")
+            sys.exit(1)
         return [2, input_data[1][1]]
     else:
         return [1, parseId(input_data[1])]
@@ -80,11 +85,16 @@ output["blocks"] = dict()
 start = ""
 event_whenflagclicked_count = 0
 for block in sprite["blocks"]:
+    if type(sprite["blocks"][block]) != type(dict()):
+        continue
     if sprite["blocks"][block]["opcode"] == "event_whenflagclicked":
         start = sprite["blocks"][block]["next"]
         event_whenflagclicked_count += 1
     elif sprite["blocks"][block]["opcode"] not in opcodes:
         print("{0} is not a supported block yet.".format(sprite["blocks"][block]["opcode"]))
+        sys.exit(1)
+    elif sprite["blocks"][block]["opcode"] in inputs_requirements and not set(sprite["blocks"][block]["inputs"].keys()).issuperset(set(inputs_requirements[sprite["blocks"][block]["opcode"]])):
+        print("One of the {0} block has some input(s) missing.".format(sprite["blocks"][block]["opcode"]))
         sys.exit(1)
     else:
         block_id = parseId(block)
@@ -135,12 +145,12 @@ for block in output["blocks"]:
 container_ids = [int(i) for i in list(output["container"]["variables"].keys()) + list(output["container"]["lists"].keys())]
 container_ids.sort()
 
-result = bfs(graph, container_ids)
+result = bfs(graph, copy.copy(container_ids))
 if len(result) < len(graph):
     print("There is something wrong with the provided project file.")
     sys.exit(1)
 else:
-    output["build_order"] = result
+    output["build_order"] = result[len(container_ids):]
 
 if args.output == None:
     output_file_name = os.path.splitext(os.path.basename(args.file_name))[0] + ".scrape"
