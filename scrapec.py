@@ -150,7 +150,7 @@ if len(result) < len(graph):
     print("There is something wrong with the provided project file.")
     sys.exit(1)
 else:
-    output["build_order"] = result[len(container_ids):]
+    output["build_order"] = [str(i) for i in result[len(container_ids):]]
 
 if args.output == None:
     output_file_name = os.path.splitext(os.path.basename(args.file_name))[0] + ".scrape"
