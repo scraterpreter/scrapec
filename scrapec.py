@@ -52,7 +52,7 @@ ids.sort()
 def parseInput(input_data):
     if input_data[0] == 1:
         if input_data[1] == None:
-            print("A block contains a null reference in one of its inputs.")
+            print("A block contains a null value in one of its inputs.")
             sys.exit(1)
         return [2, input_data[1][1]]
     else:
@@ -65,6 +65,8 @@ def parseField(field_data):
         return [1, parseId(field_data[1])]
 
 def parseId(id_string):
+    if type(id_string) == type(list()):
+        return parseId(id_string[2])
     if id_string in ids:
         return str(ids.index(id_string))
     else:
