@@ -79,7 +79,7 @@ output["container"] = dict()
 output["container"]["variables"] = dict()
 output["container"]["lists"] = dict()
 for variable in stage["variables"]:
-    output["container"]["variables"][parseId(variable)] = stage["variables"][variable][1]
+    output["container"]["variables"][parseId(variable)] = str(stage["variables"][variable][1])
 for array in stage["lists"]:
     output["container"]["lists"][parseId(array)] = stage["lists"][array][1]
 
