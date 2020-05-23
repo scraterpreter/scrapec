@@ -143,6 +143,8 @@ for block in output["blocks"]:
     for field in output["blocks"][block]["fields"]:
         if output["blocks"][block]["fields"][field][0] == 1:
             graph[int(block)].add(int(output["blocks"][block]["fields"][field][1]))
+    if output["blocks"][block]["next"] != None:
+        graph[int(block)].add(int(output["blocks"][block]["next"]))
 
 container_ids = [int(i) for i in list(output["container"]["variables"].keys()) + list(output["container"]["lists"].keys())]
 container_ids.sort()
