@@ -1,2 +1,5 @@
 *.scrape
 *.sb3
+Scrapec.egg-info/
+build/
+dist/
