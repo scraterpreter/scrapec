@@ -1,11 +1,15 @@
 import setuptools
+import subprocess
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+gitcommand = subprocess.run(["git", "describe", "--always"], stdout=subprocess.PIPE, universal_newlines=True)
+version = gitcommand.stdout.strip("\n")
+
 setuptools.setup(
-    name="Scrapec",
-    version="git-c3c4c89",
+    name="scrapec",
+    version=version,
     author="Scrape Authors",
     author_email="contact@paullee.dev",
     description="Scrapec is a program that compiles .sb3 files into .scrape files.",
