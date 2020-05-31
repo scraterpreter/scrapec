@@ -10,9 +10,9 @@ version = gitcommand.stdout.strip("\n")
 setuptools.setup(
     name="scrapec",
     version=version,
-    author="Scrape Authors",
+    author="Scraterpreter Authors",
     author_email="contact@paullee.dev",
-    description="Scrapec is a program that compiles .sb3 files into .scrape files.",
+    description="Scrapec is a program that compiles .sb3 files into .scrape files, which can then be run using Scrape.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/scraterpreter/scrapec",
@@ -25,6 +25,10 @@ setuptools.setup(
         "Topic :: Software Development :: Compilers",
     ],
     python_requires='>=3.6',
-    scripts=['src/scrapec'],
+    entry_points={
+        'console_scripts': [
+            'scrapec = src.scrapec:main',
+        ],
+    },
 )
 
