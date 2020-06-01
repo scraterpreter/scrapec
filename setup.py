@@ -4,7 +4,7 @@ import subprocess
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-gitcommand = subprocess.run(["git", "describe", "--always"], stdout=subprocess.PIPE, universal_newlines=True)
+gitcommand = subprocess.run(["git", "describe", "--always", "--abbrev=0"], stdout=subprocess.PIPE, universal_newlines=True)
 version = gitcommand.stdout.strip("\n")
 
 setuptools.setup(
