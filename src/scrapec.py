@@ -173,7 +173,7 @@ def main():
     for variable in stage["variables"]:
         output["container"]["variables"][parseId(variable)] = str(stage["variables"][variable][1])
     for array in stage["lists"]:
-        output["container"]["lists"][parseId(array)] = stage["lists"][array][1]
+        output["container"]["lists"][parseId(array)] = [str(i) for i in stage["lists"][array][1]]
 
     output["blocks"] = dict()
     start = ""
